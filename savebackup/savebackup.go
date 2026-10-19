@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"time"
 
@@ -19,26 +18,12 @@ var usernameRegex = regexp.MustCompile(`^[0-9]+$`)
 var backupRegex = regexp.MustCompile(`^[0-9]+\.dynamite\.[0-9]+.zip$`)
 
 func GetAccountDirectory() (string, error) {
-	var steamPath string
-
-	switch runtime.GOOS {
-	case "windows":
-		steamPath = os.Getenv("PROGRAMFILES(X86)")
-		if steamPath == "" {
-			return "", fmt.Errorf("can't get Program Files path")
-		}
-		steamPath = filepath.Join(steamPath, "Steam")
-	default:
-		steamPath = os.Getenv("HOME")
-		if steamPath == "" {
-			return "", fmt.Errorf("can't get HOME variable")
-		}
-		steamPath = filepath.Join(steamPath, ".steam", "steam")
+	steamPath, err := getSteamPath()
+	if err != nil {
+		return "", err
 	}
 
-	steamPath = filepath.Join(steamPath, "userdata")
-
-	return steamPath, nil
+	return filepath.Join(steamPath, "userdata"), nil
 }
 
 // GetValidAccounts returns a list of directories with accounts that own TPP

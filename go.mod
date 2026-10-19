@@ -8,6 +8,7 @@ require (
 	github.com/unknown321/hashing v0.0.0-20250606105117-13394d1540eb
 	github.com/unknown321/squib v1.0.3-0.20250714152036-3f2b3238d16c
 	github.com/yuin/goldmark v1.7.12
+	golang.org/x/sys v0.34.0
 	gopkg.in/ini.v1 v1.67.0
 )
 
@@ -21,7 +22,6 @@ require (
 	github.com/unknown321/cityhash v0.0.0-20250414150752-0134dcb10139 // indirect
 	golang.org/x/crypto v0.40.0 // indirect
 	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792 // indirect
-	golang.org/x/sys v0.34.0 // indirect
 	modernc.org/libc v1.66.6 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
