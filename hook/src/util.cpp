@@ -2,6 +2,7 @@
 #include "Tpp/PlayerDamage.h"
 #include "Tpp/TppTypes.h"
 #include "spdlog/spdlog.h"
+#include "windows.h"
 #include <cmath>
 #include <filesystem>
 #include <fstream>
@@ -159,4 +160,40 @@ std::string bytes_to_hex(const void *data, size_t n) {
     }
 
     return ss.str();
+}
+
+// reads file version (1.0.15.3) from version resource of the main executable
+bool GetExeFileVersion(uint16_t (&version)[4]) {
+    const HMODULE exe = GetModuleHandle(nullptr);
+    const HRSRC res = FindResource(exe, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
+    if (res == nullptr) {
+        return false;
+    }
+
+    const HGLOBAL loaded = LoadResource(exe, res);
+    if (loaded == nullptr) {
+        return false;
+    }
+
+    const auto data = static_cast<const uint8_t *>(LockResource(loaded));
+    const DWORD size = SizeofResource(exe, res);
+    if (data == nullptr) {
+        return false;
+    }
+
+    // VS_FIXEDFILEINFO follows variable-length VS_VERSIONINFO header and is DWORD-aligned
+    for (DWORD offset = 0; offset + sizeof(VS_FIXEDFILEINFO) <= size; offset += sizeof(DWORD)) {
+        const auto info = reinterpret_cast<const VS_FIXEDFILEINFO *>(data + offset);
+        if (info->dwSignature != VS_FFI_SIGNATURE) {
+            continue;
+        }
+
+        version[0] = HIWORD(info->dwFileVersionMS);
+        version[1] = LOWORD(info->dwFileVersionMS);
+        version[2] = HIWORD(info->dwFileVersionLS);
+        version[3] = LOWORD(info->dwFileVersionLS);
+        return true;
+    }
+
+    return false;
 }

@@ -25,6 +25,11 @@ import (
 var vendor00 = filepath.Join("master", "0", "00.dat.vendor")
 var plain00 = filepath.Join("master", "0", "00.dat")
 
+var gameExe = "mgsvtpp.exe"
+
+// hook addresses and patches are valid only for this version
+var supportedGameVersion = util.ExeVersion{1, 0, 15, 3}
+
 var qarFiles = []string{
 	vendor00,
 	filepath.Join("master", "0", "01.dat"),
@@ -64,6 +69,25 @@ func vendorValid(path string) bool {
 	}
 
 	return true
+}
+
+// game updates (1.0.15.4, June 2026) change both exe and 00.dat;
+// without this check user gets "00.dat is not valid" and verifying files in Steam doesn't help
+func checkGameVersion() error {
+	v, err := util.GetExeVersion(gameExe)
+	if err != nil {
+		slog.Warn("cannot read game version", "error", err.Error())
+		return nil
+	}
+
+	slog.Info("game", "version", v.String())
+	if v != supportedGameVersion {
+		return fmt.Errorf("game version %s is not supported, dynamite works only with %s. "+
+			"Roll the game back to %s, see https://github.com/unknown321/dynamite/issues/136",
+			v, supportedGameVersion, supportedGameVersion)
+	}
+
+	return nil
 }
 
 func backupVendor() error {
@@ -459,6 +483,10 @@ func createHook() error {
 
 func Install(conf *config.Config) error {
 	var err error
+
+	if err = checkGameVersion(); err != nil {
+		return err
+	}
 
 	err = savebackup.Run(conf.Dynamite.AccountDir)
 	if err != nil {

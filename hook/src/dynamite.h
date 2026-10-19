@@ -40,6 +40,8 @@ namespace Dynamite {
 
         void ReadConfig();
 
+        static bool CheckGameVersion();
+
         void SetFuncPtrs();
 
         static void AbortHandler(int signal_number);
@@ -60,6 +62,8 @@ namespace Dynamite {
         std::map<uint64_t, std::string> pathDict;
       private:
         static constexpr uint64_t BaseAddr = 0x140000000;
+        // addresses and patches are valid only for this exe version
+        static constexpr uint16_t SupportedGameVersion[4] = {1, 0, 15, 3};
         uint64_t RealBaseAddr = 0;
         HMODULE thisModule{nullptr};
         std::shared_ptr<spdlog::logger> log = nullptr;

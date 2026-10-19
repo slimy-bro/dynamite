@@ -11,6 +11,7 @@ dynamite is a 2 player co-op mod for Metal Gear Solid V: The Phantom Pain in ear
 * [I need a video](#i-need-a-video)
 * [I am capable of reading](#i-am-capable-of-reading)
     * [Requirements](#requirements)
+      * [Game version](#game-version)
     * [Configuration](#configuration)
       * [Co-op](#co-op)
       * [dynamite](#dynamite)
@@ -44,7 +45,8 @@ Follow this guide: <a href="https://www.youtube.com/watch?v=SvePtu07XVY" target=
 - OS:
     - Windows 10 or later
     - Linux kernel 3.2 or later / Steam OS
-- Legitimate and unmodified Steam copy of the game (JP version is not supported)
+- Legitimate and unmodified Steam copy of the game, version 1.0.15.3 (JP version is not supported), see
+  [Game version](#game-version)
 - Connection to Steam network
 - At least 1GB free space on system partition and game location drive
 - A friend to play with
@@ -61,6 +63,21 @@ choose `Properties`; then go to the `Local Files` tab and click on `Verify integ
 Connection to Steam network is required to create initial connection between host and client. Co-op won't work during
 Steam weekly maintenance period. If there is no connection to Steam, you can check
 <a href="https://steamstat.us/" target="_blank">Unofficial Steam Status website</a>.
+
+#### Game version
+
+dynamite works only with game version 1.0.15.3. Version 1.0.15.4 (June 9, 2026 update) is not supported yet: installer
+refuses to install and the game shows an error message on start, running without dynamite.
+
+To roll back to 1.0.15.3 (see
+<a href="https://steamcommunity.com/sharedfiles/filedetails/?id=889624474" target="_blank">guide</a>):
+
+1. Open Steam console by entering `steam://open/console` in your browser
+2. Enter `download_depot 287700 287701 2518831260221836800` (depot 287701, build 6239679) and wait until Steam
+   prints download location
+3. Copy downloaded files to the game directory, replacing existing ones
+
+Verifying integrity of game files in Steam updates the game to the latest version again, repeat these steps afterwards.
 
 ---
 

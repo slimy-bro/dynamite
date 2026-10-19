@@ -1,10 +1,13 @@
 #include "dynamite.h"
 #include "windows.h"
+#include <algorithm>
 #include <eh.h>
 #include <exception>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 
 #include "Config.h"
 #include "Messagebox.h"
@@ -63,6 +66,38 @@ namespace Dynamite {
         cfg.Log();
     }
 
+    // Hooking an exe with different addresses crashes the game on start (June 2026 update, 1.0.15.4).
+    // Unreadable version is not treated as a mismatch.
+    bool Dynamite::CheckGameVersion() {
+        const auto toString = [](const uint16_t(&v)[4]) { return std::format("{}.{}.{}.{}", v[0], v[1], v[2], v[3]); };
+        const auto supported = toString(SupportedGameVersion);
+
+        uint16_t version[4]{};
+        if (!GetExeFileVersion(version)) {
+            spdlog::warn("cannot read game version, assuming {}", supported);
+            return true;
+        }
+
+        spdlog::info("game version {}", toString(version));
+        if (std::equal(std::begin(version), std::end(version), std::begin(SupportedGameVersion))) {
+            return true;
+        }
+
+        const auto msg = std::format("Your game version is {}, dynamite supports only {}.\n\n"
+                                     "dynamite is disabled for this session to prevent a crash.\n\n"
+                                     "To play co-op, roll the game back to {}, see "
+                                     "https://github.com/unknown321/dynamite/issues/136\n\n"
+                                     "To play without dynamite, delete dinput8.dll from the game directory "
+                                     "and verify integrity of game files in Steam.",
+            toString(version),
+            supported,
+            supported);
+        spdlog::error(msg);
+        ShowMessageBox(msg.c_str(), "Unsupported game version", MB_ICONERROR);
+
+        return false;
+    }
+
     void Dynamite::RebaseAddresses() {
         for (const auto &[name, addr] : addressSet) {
             const uint64_t rebasedAddr = (addr - BaseAddr) + RealBaseAddr;
@@ -94,6 +129,10 @@ namespace Dynamite {
         std::filesystem::path path(fullPath);
         std::wstring exeName = path.filename().c_str();
         if (exeName.find(L"mgo") != std::wstring::npos) {
+            return;
+        }
+
+        if (!CheckGameVersion()) {
             return;
         }
 

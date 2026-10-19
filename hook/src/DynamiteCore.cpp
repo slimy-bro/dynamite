@@ -411,14 +411,15 @@ namespace Dynamite {
 
     void DynamiteCore::RemoveOpponentEmblemTexture() {
         spdlog::info("{}", __PRETTY_FUNCTION__);
-        const auto emblemEditor = GetEmblemEditorSystemImpl();
-        if (emblemEditor == nullptr) {
-            spdlog::error("{}, emblem editor is null", __PRETTY_FUNCTION__);
+        // checked first, called on exit even if game functions were never set up (unsupported game version)
+        if (!emblemCreated) {
+            spdlog::info("{}, but there was no emblem created", __PRETTY_FUNCTION__);
             return;
         }
 
-        if (!emblemCreated) {
-            spdlog::info("{}, but there was no emblem created", __PRETTY_FUNCTION__);
+        const auto emblemEditor = GetEmblemEditorSystemImpl();
+        if (emblemEditor == nullptr) {
+            spdlog::error("{}, emblem editor is null", __PRETTY_FUNCTION__);
             return;
         }
 

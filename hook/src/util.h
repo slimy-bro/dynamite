@@ -26,4 +26,6 @@ void DumpDamage(PlayerDamage *Damage, uint32_t playerIndex);
 
 std::string bytes_to_hex(const void *data, size_t n);
 
+bool GetExeFileVersion(uint16_t (&version)[4]);
+
 #endif // HOOK_UTIL_H
