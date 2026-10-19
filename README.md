@@ -27,6 +27,8 @@ https://github.com/user-attachments/assets/e82c43c7-eace-4084-b1fd-c4fb8ef3abe2
 
 [Build from source](./docs/BUILD.md)
 
+[Porting to a new game version](./docs/PORTING.md)
+
 ### Support the project
 
 <a href="https://boosty.to/unknown321/donate" target="_blank">Boosty</a>
