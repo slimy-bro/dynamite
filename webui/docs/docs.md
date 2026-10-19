@@ -50,6 +50,8 @@ Follow this guide: <a href="https://www.youtube.com/watch?v=SvePtu07XVY" target=
 - Connection to Steam network
 - At least 1GB free space on system partition and game location drive
 - A friend to play with
+- Save file with missions 1 (PHANTOM LIMBS) and 2 (DIAMOND DOGS) completed in single player; co-op won't connect on
+  a brand-new save
 
 It is also heavily recommended to have 100% save to access all working missions.
 
