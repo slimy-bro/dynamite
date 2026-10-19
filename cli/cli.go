@@ -11,6 +11,7 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -148,6 +149,18 @@ func Run() {
 		}
 	}(&conf, StartLocalServer)
 
+	// bind before healthcheck, otherwise healthcheck succeeds on another running instance and opens browser
+	var uiListener net.Listener
+	if !installNow {
+		if uiListener, err = webui.Listen(conf.Dynamite.UIAddress); err != nil {
+			slog.Error("Web UI", "error", err.Error())
+			slog.Error("Is dynamite already running? Press Enter to exit.")
+			var a []byte
+			_, _ = fmt.Scanln(&a)
+			os.Exit(1)
+		}
+	}
+
 	// healthcheck that opens web ui as soon as it's up
 	go func(c *config.Config, ls chan bool) {
 		if c.Dynamite.SkipConfig {
@@ -191,7 +204,7 @@ func Run() {
 		select {}
 	} else {
 		slog.Info("Starting Web UI", "address", conf.Dynamite.UIAddress)
-		webui.Run(conf.Dynamite.UIAddress, &conf)
+		webui.Run(uiListener, &conf)
 		slog.Info("Web UI stopped")
 	}
 }

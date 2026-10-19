@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 )
@@ -19,17 +20,24 @@ func withFlavor(next http.Handler) http.Handler {
 	})
 }
 
-func Run(address string, conf *config.Config) {
-	var err error
+// Listen binds Web UI address before anything else touches it,
+// fails if another instance is already running
+func Listen(address string) (net.Listener, error) {
 	if address == "" {
 		address = "127.0.0.1:8070"
 	}
+
+	return net.Listen("tcp", address)
+}
+
+func Run(l net.Listener, conf *config.Config) {
+	var err error
 
 	handlers.Init()
 
 	mux := http.NewServeMux()
 	hm := withFlavor(mux)
-	srv := &http.Server{Addr: address, Handler: hm}
+	srv := &http.Server{Addr: l.Addr().String(), Handler: hm}
 	handlers.Server = srv
 	handlers.Config = conf
 	handlers.Version = util.GetVersion()
@@ -50,7 +58,7 @@ func Run(address string, conf *config.Config) {
 		return
 	})
 
-	if err = srv.ListenAndServe(); err != nil {
+	if err = srv.Serve(l); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("Web UI", "error", err.Error())
 			slog.Error("Press Enter to exit.")
