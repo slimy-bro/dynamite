@@ -133,6 +133,9 @@ function script_loader.OnInitialize() end
 function script_loader.Update()
 	script_loader.init(false)
 
+	-- client connects after joining host or accepting invite through Steam
+	xpcall(Dynamite.ProcessJoinRequest, script_loader.error_handler)
+
 	if bit.band(PlayerVars.scannedButtonsDirect, script_loader.master_key) == script_loader.master_key then
 		if Time.GetRawElapsedTimeSinceStartUp() - script_loader.hold_pressed > 1 then
 			script_loader.hold_pressed = Time.GetRawElapsedTimeSinceStartUp()

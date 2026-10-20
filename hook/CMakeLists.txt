@@ -85,6 +85,7 @@ add_library(${PROJECT_NAME} SHARED
         src/dynamiteHooks.cpp
         src/dynamitePatches.cpp
         src/DynamiteCore.cpp
+        src/SteamInvite.cpp
         src/dynamite.cpp
         src/DynamiteLua.cpp
         src/DynamiteHook.cpp

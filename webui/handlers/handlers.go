@@ -139,6 +139,7 @@ func Start(w http.ResponseWriter, r *http.Request) {
 	}
 
 	d.Examples["SteamID"] = "Example: 76561197960287930"
+	d.Examples["HostSteamID"] = "Optional: leave empty to join host through Steam (overlay invite or \"Join Game\" in friends list)"
 	d.Examples["SteamID2"] = "Example: https://steamcommunity.com/id/GabeLoganNewell/"
 	d.Examples["SteamID3"] = "Example: https://steamcommunity.com/profiles/76561197960287930/"
 	d.Examples["UI Address2"] = "Example: 127.0.0.1:8070"
@@ -241,8 +242,11 @@ func Save(w http.ResponseWriter, r *http.Request) {
 
 			Config.Coop.Whitelist = append(Config.Coop.Whitelist, ll.String())
 		}
+	} else if v := strings.TrimSpace(r.FormValue("Config.Coop.HostSteamID")); v == "" {
+		// client joins host through Steam invite
+		Config.Coop.HostSteamID = 0
 	} else {
-		Config.Coop.HostSteamID, err = util.GetSteamID(r.FormValue("Config.Coop.HostSteamID"))
+		Config.Coop.HostSteamID, err = util.GetSteamID(v)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Bad host SteamID: %s", err.Error()), http.StatusBadRequest)
 			return

@@ -6,6 +6,7 @@
 #include "DynamiteSyncImpl/DynamiteSyncImpl.h"
 #include "Tpp/TppNPCLifeState.h"
 #include "Tpp/TppTypes.h"
+#include "SteamInvite.h"
 #include "Version.h"
 #include "lua/lua.h"
 #include "patch.h"
@@ -62,6 +63,8 @@ namespace Dynamite {
         DynamiteSyncImpl dynamiteSyncImpl;
 
         DynamiteCore dynamiteCore;
+
+        SteamInvite steamInvite;
 
         Config cfg{};
 

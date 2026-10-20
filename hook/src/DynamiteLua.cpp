@@ -92,6 +92,15 @@ namespace Dynamite {
             return 0;
         }
 
+        if (g_hook->cfg.HostSteamID == 0) {
+            const auto text = "dynamite_connection_failed\0";
+            spdlog::error("{}, no host Steam ID: set it in config or join host through Steam", __PRETTY_FUNCTION__);
+            lua_pushstring(L, text);
+            TppUiUiCommandAnnounceLogViewLangId(L);
+
+            return 1;
+        }
+
         // fob target and session connect info can contain any data, preferably nulls
         // targetIPCString must be set to anything > 0, crash otherwise
         // 3 just works
@@ -128,6 +137,40 @@ namespace Dynamite {
         TppUiUiCommandAnnounceLogViewLangId(L);
 
         g_hook->dynamiteCore.SetSessionCreated(res);
+
+        return 1;
+    }
+
+    // script_loader.lua, called every frame; client connects to host after joining or accepting invite through Steam
+    int l_ProcessJoinRequest(lua_State *L) {
+        if (!g_hook->steamInvite.Initialized()) {
+            g_hook->steamInvite.Init(g_hook->cfg.Host);
+        }
+
+        const auto host = SteamInvite::TakeJoinRequest();
+        if (host == 0) {
+            return 0;
+        }
+
+        if (g_hook->cfg.Host) {
+            spdlog::info("{}, host mode, ignoring join request to {}", __PRETTY_FUNCTION__, host);
+            return 0;
+        }
+
+        if (g_hook->dynamiteCore.GetSessionCreated() && host != g_hook->cfg.HostSteamID) {
+            spdlog::warn("{}, already connected to {}, reset session state to join {}", __PRETTY_FUNCTION__, g_hook->cfg.HostSteamID, host);
+            return 0;
+        }
+
+        spdlog::info("{}, joining host {} through Steam", __PRETTY_FUNCTION__, host);
+        g_hook->cfg.HostSteamID = host;
+
+        return l_CreateClientSession(L);
+    }
+
+    // host, key binding: opens Steam overlay dialog to invite friends
+    int l_OpenInviteDialog(lua_State *L) {
+        lua_pushboolean(L, g_hook->steamInvite.OpenInviteDialog());
 
         return 1;
     }
@@ -406,6 +449,8 @@ namespace Dynamite {
         luaL_Reg libFuncs[] = {
             {"CreateHostSession", l_CreateHostSession},
             {"CreateClientSession", l_CreateClientSession},
+            {"ProcessJoinRequest", l_ProcessJoinRequest},
+            {"OpenInviteDialog", l_OpenInviteDialog},
             {"ResetClientSessionState", l_ResetClientSessionState},
             {"ResetClientSessionStateWithNotification", l_ResetClientSessionStateWithNotification},
             {"StartNearestEnemyThread", l_StartNearestEnemyThread},

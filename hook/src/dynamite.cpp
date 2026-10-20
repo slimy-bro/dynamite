@@ -169,6 +169,7 @@ namespace Dynamite {
         SetFuncPtrs();
         ReadConfig();
         CreateHooks();
+        SteamInvite::ReadCommandLine(GetCommandLineA());
         dynamiteCore.WithConfig(&cfg);
     }
 

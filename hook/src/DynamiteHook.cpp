@@ -25,6 +25,7 @@ namespace Dynamite {
 
         CreateLibs(L);
         hookState.luaState = L;
+        g_hook->steamInvite.Init(g_hook->cfg.Host);
 
         g_hook->messageDict = readMessageDictionary("strcode32hex.txt");
         g_hook->pathDict = readPathCodeDictionary("pathfilenamecode64.txt"); // pathfilenamecode64 in HashWrangler

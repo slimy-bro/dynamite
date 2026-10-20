@@ -213,6 +213,11 @@ func (c *Config) Default() error {
 			Module:   "Dynamite",
 			Function: "WarpToPartner",
 		},
+		{
+			Name:     "RIGHT",
+			Module:   "Dynamite",
+			Function: "OpenInviteDialog",
+		},
 	}
 
 	c.Keys = keys

@@ -91,7 +91,8 @@ bool Config::Read(ConfigValidateResult *r) {
     auto steamid = ini.get("Coop").get("HostSteamID");
     std::istringstream(steamid) >> this->HostSteamID;
 
-    if (!this->Host) {
+    // client without host Steam ID joins host through Steam invite
+    if (!this->Host && this->HostSteamID != 0) {
         if (this->HostSteamID < 0x110000100000000 || this->HostSteamID > 0x01100001FFFFFFFF) {
             r->Message = "Invalid HostSteamID.";
             return false;

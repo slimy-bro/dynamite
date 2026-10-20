@@ -96,8 +96,9 @@ Verifying integrity of game files in Steam updates the game to the latest versio
 Check `Host mode` to host the co-op session. See [Playing](#Playing) section for differences between hosting and
 joining as a client.
 
-Otherwise, paste your host's Steam profile url to `Host Steam ID`. You can get it from Steam client by navigating to
-host's Steam profile, right-clicking the page and selecting `Copy Page URL`.
+Otherwise, leave `Host Steam ID` empty and join your host through Steam overlay, see [Playing](#Playing). You can also
+paste your host's Steam profile url to `Host Steam ID` to connect with a key binding instead. You can get it from Steam
+client by navigating to host's Steam profile, right-clicking the page and selecting `Copy Page URL`.
 
 As a host, add unwanted persons to `Blacklist` or limit your co-op session to a close circle of friends
 by adding them to `Whitelist`. If whitelist has entries in it, blacklist is ignored.
@@ -144,8 +145,10 @@ You can add and change key combinations to run dynamite functions (see [Playing]
 To use them, hold `Master Key` for a second and press key from the table to call corresponding function in game.
 
 `Dynamite.CreateClientSession` entry is required to connect to the host;
-`Dynamite.ResetClientSessionStateWithNotification` is required to reset session state in case of connection issues. You
-should keep these entries; feel free to change default keys (`UP` and `LEFT` arrow buttons).
+`Dynamite.ResetClientSessionStateWithNotification` is required to reset session state in case of connection issues;
+`Dynamite.OpenInviteDialog` opens Steam overlay to invite friends (host). You should keep these entries; feel free to
+change default keys (`UP`, `LEFT` and `RIGHT` arrow buttons). If your config was created by an older version, add
+`Dynamite.OpenInviteDialog` entry yourself.
 
 ---
 
@@ -205,12 +208,15 @@ Click <a href="/missionlist">here</a> for full mission list.
 
 #### Host
 
-Start the mission as usual. When you see your character (past mission splash screen), tell your partner to connect. Wait
-for partner at the landing zone.
+Start the mission as usual. When you see your character (past mission splash screen), invite your partner: press
+`Master Key` + `RIGHT` arrow (`Dynamite.OpenInviteDialog` key bind) and pick them in Steam overlay. You can also invite
+them from Steam friends list (right-click, `Invite to Game`), or tell them to connect. Wait for partner at the landing
+zone. Steam overlay must be enabled (Steam --> Settings --> In Game).
 
 **Warning**: By default (empty blacklist/whitelist), anyone can join your session if they know your SteamID and the fact
 that you
-are in mission. After establishing connection clients know your IP address. Use black/whitelists accordingly.
+are in mission. Your Steam friends see `Join Game` button while you play in host mode. After establishing connection
+clients know your IP address. Use black/whitelists accordingly.
 
 Video: <a href="https://youtu.be/ei4CW0x1CfY" target="_blank">Link</a>
 
@@ -218,8 +224,15 @@ Video: <a href="https://youtu.be/ei4CW0x1CfY" target="_blank">Link</a>
 
 #### Client
 
-**IMPORTANT STEP**: Wait for host to load the mission, then press `Master Key` + `UP` arrow to connect
-(`Dynamite.CreateClientSession` key bind). It must be done every time by client before starting the mission.
+**IMPORTANT STEP**: Wait for host to load the mission, then connect. It must be done every time by client before starting
+the mission. Connect with one of:
+
+- accept host's invite in Steam overlay (`Shift+Tab`) or Steam chat
+- `Join Game` on host in Steam friends list (overlay or Steam client)
+- `Master Key` + `UP` arrow (`Dynamite.CreateClientSession` key bind), connects to host you joined through Steam since
+  the game started, or to `Host Steam ID` from config
+
+Start the game before joining: invites accepted while the game is not running may not reach it.
 
 Read the notifications in the game log; if the connection fails, try again. After `Connection established` message start
 the same mission. If you are getting "You have been disconnected" popup, press `Master Key` + `LEFT` arrow to reset

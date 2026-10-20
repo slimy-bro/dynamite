@@ -9,6 +9,8 @@ namespace Dynamite {
     int l_ResetClientSessionStateWithNotification(lua_State *L);
     int l_ResetClientSessionState(lua_State *L);
     int l_CreateClientSession(lua_State *L);
+    int l_ProcessJoinRequest(lua_State *L);
+    int l_OpenInviteDialog(lua_State *L);
     int l_StartNearestEnemyThread(lua_State *L);
     int l_StopNearestEnemyThread(lua_State *L);
     int l_IsNearestEnemyThreadRunning(lua_State *L);

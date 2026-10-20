@@ -73,13 +73,9 @@
                 return;
             }
 
-            if (input.value.trim() === '') {
-                input.classList.add('error-field');
-                document.getElementById('hostSteamID-message').style = "display:block";
-            } else {
-                input.classList.remove('error-field');
-                document.getElementById('hostSteamID-message').style = "display:none";
-            }
+            // empty: client joins host through Steam invite
+            input.classList.remove('error-field');
+            document.getElementById('hostSteamID-message').style = "display:none";
         }
 
         // Store available keys from Go template
@@ -203,6 +199,7 @@
                             oninput="validateSteamID(this)">
                         <div class="error-message" id="hostSteamID-message" style="display: none;">Host SteamID is required</div>
                     </div>
+                    <div class="comment table">{{ index .Examples "HostSteamID" }}</div>
                     <div class="comment table">{{ index .Examples "SteamID" }}</div>
                     <div class="comment table">{{ index .Examples "SteamID2" }}</div>
                     <div class="comment table">{{ index .Examples "SteamID3" }}</div>
