@@ -11,7 +11,7 @@
 // Entries IHHook keeps commented out are not taken, some of them are stale 1.0.15.3 copies.
 // Code layout changed between versions, missing addresses can't be derived from 1.0.15.3 ones by offset.
 // Byte patches in dynamitePatches.cpp and master server url patch must be found for 1.0.15.4 as well.
-// See docs/PORTING.md, hook/ghidra/DynamiteFindNew.java rewrites this file keeping active entries.
+// See docs/PORTING.md, hook/ghidra/DynamitePort.java rewrites this file keeping active entries.
 
 namespace Dynamite {
     inline std::map<std::string, uint64_t> mgsvtpp_adresses_1_0_15_4_en{

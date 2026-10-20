@@ -7,8 +7,8 @@ Version 1.0.15.4 (June 9, 2026 update) moved almost everything. To support it, t
   - 202 function addresses, `hook/src/mgsvtpp_addresses_1_0_15_3_en.h`
   - 25 byte patches and master server url, `hook/src/dynamitePatches.cpp`
 
-Progress is tracked in `hook/src/mgsvtpp_addresses_1_0_15_4_en.h`. Two Ghidra scripts in `hook/ghidra` do most of
-the lookups; whatever they can't match is left for a human.
+Progress is tracked in `hook/src/mgsvtpp_addresses_1_0_15_4_en.h`. Ghidra script `hook/ghidra/DynamitePort.java`
+does most of the lookups; whatever it can't match is left for a human.
 
 ### 1. Access and tools
 
@@ -16,30 +16,36 @@ the lookups; whatever they can't match is left for a human.
     both exe versions with tens of thousands of named functions, see
     [Ghidra tips](https://mgsvmoddingwiki.github.io/Ghidra_tips/)
   - Ghidra (same version as the server, ask on Discord) and JDK 21
-  - A local copy of this repository with `hook/ghidra` folder in it
+  - `hook/ghidra/DynamitePort.java`, it doesn't need the rest of this repository
 
 ### 2. Function names in the new exe
 
-Scripts match functions by name, so names must be transferred from 1.0.15.3 exe to 1.0.15.4 exe first.
+The script matches functions by name, so names must be transferred from 1.0.15.3 exe to 1.0.15.4 exe first.
 
 Check whether it was done already: open 1.0.15.4 exe, press `G`, enter a full name of a function dynamite uses (open
 1.0.15.3 exe, press `G`, enter an address from `mgsvtpp_addresses_1_0_15_3_en.h` to get one). If Ghidra finds it,
 names are there. Otherwise run [Version Tracking](https://mgsvmoddingwiki.github.io/Ghidra_version_tracking/)
 (takes hours and a lot of memory).
 
-### 3. Run the scripts
+### 3. Run the script
 
-`Window -> Script Manager`, `Manage Script Directories` (list icon), add `hook/ghidra`. Scripts are in `Dynamite`
-category.
+Open the project in Ghidra, open any program in CodeBrowser, then `Window -> Script Manager`,
+`Manage Script Directories` (list icon), add the folder with `DynamitePort.java`. Run `DynamitePort.java` from
+`Dynamite` category.
 
-  1. Open 1.0.15.3 exe, run `DynamiteExportOld.java`, select `hook/src` folder. It writes `dynamite_1_0_15_3.tsv`.
-  2. Open 1.0.15.4 exe, run `DynamiteFindNew.java`, select `hook/src` folder. It rewrites
-     `mgsvtpp_addresses_1_0_15_4_en.h` and writes `dynamite_patches_1_0_15_4.txt`.
+It finds 1.0.15.3 and 1.0.15.4 exes in the project by version info (asks if it can't tell), opens them read-only
+(no checkout needed) and writes results to `dynamite_port` folder in your home directory:
 
-Console shows how many functions and patches were found.
+  - `mgsvtpp_addresses_1_0_15_4_en.h` - function addresses
+  - `dynamite_patches_1_0_15_4.txt` - byte patches and master server url
 
-Headless: `analyzeHeadless <project dir> <project> -process <exe> -noanalysis -scriptPath hook/ghidra -postScript
-DynamiteExportOld.java hook/src` (same for `DynamiteFindNew.java`).
+Console shows how many functions and patches were found. Copy results to `hook/src` when done.
+
+Headless: `analyzeHeadless <project dir> <project> -process <any program> -noanalysis -readOnly -scriptPath
+hook/ghidra -postScript DynamitePort.java [<1.0.15.3 program path> <1.0.15.4 program path> [<out dir>]]`
+
+The script carries a copy of dynamite's address and patch files; after changing them run
+`go run hook/ghidra/generate.go` (`go test` checks that the copy is up to date).
 
 ### 4. Finish by hand
 
@@ -60,8 +66,8 @@ Finding a function by hand: open it in 1.0.15.3 exe (`G`, old address), select a
 decompiled code. More approaches (strings, vtables, debugger) are in [Ghidra tips](https://mgsvmoddingwiki.github.io/Ghidra_tips/).
 Name the function in the new exe and check it in, so others don't have to do it again.
 
-`DynamiteFindNew.java` can be run again any time: active entries are kept, so fill in addresses by hand or name more
-functions in Ghidra and re-run it.
+The script can be run again any time: active entries of previous result in `dynamite_port` folder are kept, so fill in
+addresses there by hand or name more functions in Ghidra and re-run it.
 
 `dynamite_patches_1_0_15_4.txt`: `FOUND` patches are in the same function, surrounded by the same instructions and
 have the same original bytes; look at them in Ghidra anyway. Port the rest by hand: find the function, then the
