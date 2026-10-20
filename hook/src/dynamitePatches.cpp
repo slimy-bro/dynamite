@@ -1,10 +1,12 @@
 #include "dynamite.h"
+#include "mgsvtpp_patches_1_0_15_4_en.h"
 #include "patch.h"
 #include <vector>
 
 namespace Dynamite {
+    // Patches are written for 1.0.15.3 and moved to addresses of running game version.
     std::vector<Patch> Dynamite::GetPatches() {
-        return {
+        std::vector<Patch> patches{
             {
                 .address = 0x140ffa9ff,
                 .expected = {0x74, 0x07}, // JZ 0x140ffaa08
@@ -242,6 +244,27 @@ namespace Dynamite {
             //                    "tpp::gm::soldier::impl::Soldier2Impl::Initialize",
             // },
         };
+
+        if (gameVersion == GameVersion::V1_0_15_4) {
+            for (auto &p : patches) {
+                const auto location = mgsvtpp_patches_1_0_15_4_en.find(p.address);
+                if (location == mgsvtpp_patches_1_0_15_4_en.end()) {
+                    p.address = 0; // not found in this version, patch fails
+                    continue;
+                }
+
+                p.address = location->second.address;
+                if (!location->second.expected.empty()) {
+                    p.expected = location->second.expected;
+                }
+
+                if (!location->second.patch.empty()) {
+                    p.patch = location->second.patch;
+                }
+            }
+        }
+
+        return patches;
     }
 
     bool Dynamite::PatchMasterServerURL(const std::string &url) {
@@ -267,7 +290,7 @@ namespace Dynamite {
         patch.push_back(0);
 
         auto p = Patch{
-            .address = 0x142218770,
+            .address = gameVersion == GameVersion::V1_0_15_4 ? mgsvtpp_master_server_url_1_0_15_4_en : 0x142218770,
             .expected = expected,
             .patch = patch,
             .description = "override master server url",

@@ -27,8 +27,19 @@ var plain00 = filepath.Join("master", "0", "00.dat")
 
 var gameExe = "mgsvtpp.exe"
 
-// hook addresses and patches are valid only for this version
-var supportedGameVersion = util.ExeVersion{1, 0, 15, 3}
+// hook addresses and patches are valid only for these versions
+var supportedGameVersions = []util.ExeVersion{{1, 0, 15, 3}, {1, 0, 15, 4}}
+
+// detected by checkGameVersion
+var gameVersion = supportedGameVersions[0]
+
+// md5 of stock 00.dat by game version
+var stock00 = map[util.ExeVersion]string{
+	{1, 0, 15, 3}: "2779dcc79b7b700ed70b3900344cc164",
+}
+
+// added to 00.dat on install
+var coopEssentials = "/Assets/tpp/pack/coop/coop_essentials.fpk"
 
 var qarFiles = []string{
 	vendor00,
@@ -56,69 +67,120 @@ func vendorExists() bool {
 	return true
 }
 
-func vendorValid(path string) bool {
+type datStatus int
+
+const (
+	datValid datStatus = iota
+	datInvalid
+	datOtherVersion // stock 00.dat of another game version
+)
+
+// checks if file is stock 00.dat of current game version;
+// if checksum for this version is not known, accepts any file except stock 00.dat of other versions and 00.dat
+// modified by dynamite
+func check00(path string) datStatus {
 	h, err := util.Md5sum(path)
 	if err != nil {
-		return false
-	}
-	slog.Info("checksum", "path", path, "sum", fmt.Sprintf("%x", h))
-	// 2779dcc79b7b700ed70b3900344cc164
-	target := []byte{0x27, 0x79, 0xdc, 0xc7, 0x9b, 0x7b, 0x70, 0x0e, 0xd7, 0x0b, 0x39, 0x00, 0x34, 0x4c, 0xc1, 0x64}
-	if bytes.Compare(h, target) != 0 {
-		return false
+		return datInvalid
 	}
 
-	return true
+	sum := fmt.Sprintf("%x", h)
+	slog.Info("checksum", "path", path, "sum", sum)
+	for v, s := range stock00 {
+		if s == sum {
+			if v == gameVersion {
+				return datValid
+			}
+
+			return datOtherVersion
+		}
+	}
+
+	if _, known := stock00[gameVersion]; known {
+		return datInvalid
+	}
+
+	q := qar.Qar{}
+	if err = q.ReadFrom(path); err != nil {
+		slog.Error("read qar", "path", path, "error", err.Error())
+		return datInvalid
+	}
+	defer q.Close()
+
+	hash := hashing.HashFileNameWithExtension(coopEssentials)
+	for _, e := range q.Entries {
+		if e.Header.PathHash == hash {
+			slog.Info("file is modified by dynamite", "path", path)
+			return datInvalid
+		}
+	}
+
+	slog.Warn("stock 00.dat checksum is not known for this game version, assuming file is not modified",
+		"version", gameVersion.String())
+	return datValid
 }
 
-// game updates (1.0.15.4, June 2026) change both exe and 00.dat;
-// without this check user gets "00.dat is not valid" and verifying files in Steam doesn't help
+// game updates (1.0.15.4, June 2026) change both exe and 00.dat
 func checkGameVersion() error {
 	v, err := util.GetExeVersion(gameExe)
 	if err != nil {
-		slog.Warn("cannot read game version", "error", err.Error())
+		slog.Warn("cannot read game version", "error", err.Error(), "assuming", gameVersion.String())
 		return nil
 	}
 
 	slog.Info("game", "version", v.String())
-	if v != supportedGameVersion {
+	if !slices.Contains(supportedGameVersions, v) {
+		supported := make([]string, len(supportedGameVersions))
+		for i, s := range supportedGameVersions {
+			supported[i] = s.String()
+		}
+
 		return fmt.Errorf("game version %s is not supported, dynamite works only with %s. "+
-			"Roll the game back to %s, see https://github.com/unknown321/dynamite/issues/136",
-			v, supportedGameVersion, supportedGameVersion)
+			"Check for a dynamite update, see https://github.com/unknown321/dynamite/issues/136",
+			v, strings.Join(supported, ", "))
 	}
 
+	gameVersion = v
 	return nil
 }
 
 func backupVendor() error {
-	if !vendorExists() {
-		slog.Info("00.dat.vendor does not exist, creating")
-		if !vendorValid(plain00) {
-			return fmt.Errorf("00.dat is not valid. Verify integrity of data files using Steam and try again")
-		}
-
-		f, err := os.Open(plain00)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		vv, err := os.Create(vendor00)
-		if err != nil {
-			return err
-		}
-		defer vv.Close()
-
-		if _, err = vv.ReadFrom(f); err != nil {
-			return err
-		}
-	} else {
-		if !vendorValid(vendor00) {
+	if vendorExists() {
+		switch check00(vendor00) {
+		case datValid:
+			return nil
+		case datOtherVersion:
+			// left from installation on previous game version, 00.dat is stock after game update
+			slog.Info("00.dat.vendor is from another game version, creating new one")
+		default:
 			slog.Warn("00.dat.vendor is invalid, you are on your own")
 			slog.Warn("Press Enter to continue...")
 			var a []byte
 			_, _ = fmt.Scanln(&a)
+			return nil
 		}
+	} else {
+		slog.Info("00.dat.vendor does not exist, creating")
+	}
+
+	if check00(plain00) != datValid {
+		return fmt.Errorf("00.dat is not valid. Verify integrity of data files using Steam and try again")
+	}
+
+	f, err := os.Open(plain00)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	vv, err := os.Create(vendor00)
+	if err != nil {
+		return err
+	}
+	defer vv.Close()
+
+	if _, err = vv.ReadFrom(f); err != nil {
+		return err
 	}
 
 	return nil
@@ -179,7 +241,7 @@ func packVendor(baseDir string) error {
 	appends := []qar.Entry{
 		{
 			Header: qar.EntryHeader{
-				FilePath:   "/Assets/tpp/pack/coop/coop_essentials.fpk",
+				FilePath:   coopEssentials,
 				Compressed: true,
 			},
 		},

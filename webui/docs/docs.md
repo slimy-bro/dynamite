@@ -45,8 +45,8 @@ Follow this guide: <a href="https://www.youtube.com/watch?v=SvePtu07XVY" target=
 - OS:
     - Windows 10 or later
     - Linux kernel 3.2 or later / Steam OS
-- Legitimate and unmodified Steam copy of the game, version 1.0.15.3 (JP version is not supported), see
-  [Game version](#game-version)
+- Legitimate and unmodified Steam copy of the game, version 1.0.15.4 (latest) or 1.0.15.3 (JP version is not
+  supported), see [Game version](#game-version)
 - Connection to Steam network
 - At least 1GB free space on system partition and game location drive
 - A friend to play with
@@ -68,8 +68,13 @@ Steam weekly maintenance period. If there is no connection to Steam, you can che
 
 #### Game version
 
-dynamite works only with game version 1.0.15.3. Version 1.0.15.4 (June 9, 2026 update) is not supported yet: installer
-refuses to install and the game shows an error message on start, running without dynamite.
+dynamite works with game versions 1.0.15.4 (June 9, 2026 update, current Steam version) and 1.0.15.3. Other versions
+are refused: installer does not install and the game shows an error message on start, running without dynamite.
+
+Support for 1.0.15.4 is new and not tested as much as 1.0.15.3. If something works on 1.0.15.3 but not on 1.0.15.4,
+please report it with `dynamite/dynamite.log.txt` from the game directory.
+
+Both players should use the same game version.
 
 To roll back to 1.0.15.3 (see
 <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=889624474" target="_blank">guide</a>):
@@ -78,8 +83,9 @@ To roll back to 1.0.15.3 (see
 2. Enter `download_depot 287700 287701 2518831260221836800` (depot 287701, build 6239679) and wait until Steam
    prints download location
 3. Copy downloaded files to the game directory, replacing existing ones
+4. Run dynamite installer again
 
-Verifying integrity of game files in Steam updates the game to the latest version again, repeat these steps afterwards.
+Verifying integrity of game files in Steam updates the game to the latest version again.
 
 ---
 

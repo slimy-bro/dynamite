@@ -3,8 +3,9 @@ dynamite
 
 dynamite is a 2 player co-op mod for Metal Gear Solid V: The Phantom Pain in early development stage.
 
-> [!WARNING]
-> You MUST roll back your game to the previous version before installing, see [related issue](https://github.com/unknown321/dynamite/issues/136).
+> [!NOTE]
+> Game versions 1.0.15.4 (June 2026 update) and 1.0.15.3 are supported. 1.0.15.4 support is new, see
+> [user documentation](./webui/docs/docs.md#game-version).
 
 [Download](https://github.com/unknown321/dynamite/releases/latest)
 

@@ -1,13 +1,14 @@
 Porting to a new game version
 ===
 
-dynamite hooks game functions and patches game code at fixed addresses, which are valid only for game version 1.0.15.3.
-Version 1.0.15.4 (June 9, 2026 update) moved almost everything. To support it, these must be found in the new exe:
+dynamite hooks game functions and patches game code at fixed addresses, which are valid only for one game version.
+Version 1.0.15.4 (June 9, 2026 update) moved almost everything. These had to be found in the new exe:
 
   - 202 function addresses, `hook/src/mgsvtpp_addresses_1_0_15_3_en.h`
   - 25 byte patches and master server url, `hook/src/dynamitePatches.cpp`
 
-Progress: `hook/src/mgsvtpp_addresses_1_0_15_4_en.h` (functions), `hook/src/mgsvtpp_patches_1_0_15_4_en.h` (patches).
+1.0.15.4: `hook/src/mgsvtpp_addresses_1_0_15_4_en.h` (196 functions, the rest is used only by debug options),
+`hook/src/mgsvtpp_patches_1_0_15_4_en.h` (all patches). Hook picks tables by exe version (`hook/src/dynamite.cpp`).
 
 ### Method
 
@@ -28,12 +29,14 @@ No function names are needed, only both exes analyzed in Ghidra. 1.0.15.3 exe ca
 
 All 18 addresses known from IHHook 1.0.15.4 table agree with the matches.
 
+Some 1.0.15.4 functions are reachable only through a jump stub and their code was not compared; hook checks their
+first bytes before hooking (`mgsvtpp_address_checks_1_0_15_4_en`) and logs an error if they differ.
+
 ### Remaining
 
-  - functions and patches still commented out in the files above
   - game scripts: dynamite replaces some game scripts with edited 1.0.15.3 versions (`moddata/standalone`, mission
-    files in `moddata/moddata.go`) and checks 1.0.15.3 `00.dat` checksum (`installer/installer.go`); 1.0.15.4 versions
-    must be compared with them
-  - hook must pick address and patch tables by game version (`hook/src/dynamite.cpp`, `hook/src/dynamitePatches.cpp`)
-    and accept 1.0.15.4 in version checks (hook and installer)
+    files in `moddata/moddata.go`). If 1.0.15.4 changed them, these changes are lost; 1.0.15.4 versions must be
+    compared with them
+  - stock 1.0.15.4 `00.dat` checksum is not known, installer accepts any `00.dat` that is not 1.0.15.3 stock or
+    modified by dynamite (`installer/installer.go`); checksum is printed to installer log
   - testing with two players on 1.0.15.4

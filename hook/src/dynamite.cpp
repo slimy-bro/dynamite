@@ -16,6 +16,7 @@
 #include "Tpp/TppNPCLifeState.h"
 #include "memtag.h"
 #include "mgsvtpp_addresses_1_0_15_3_en.h"
+#include "mgsvtpp_addresses_1_0_15_4_en.h"
 #include "mgsvtpp_func_typedefs.h"
 #include "patch.h"
 #include "spdlog/sinks/basic_file_sink.h"
@@ -66,36 +67,55 @@ namespace Dynamite {
         cfg.Log();
     }
 
-    // Hooking an exe with different addresses crashes the game on start (June 2026 update, 1.0.15.4).
+    // Hooking an exe with different addresses crashes the game on start.
     // Unreadable version is not treated as a mismatch.
     bool Dynamite::CheckGameVersion() {
         const auto toString = [](const uint16_t(&v)[4]) { return std::format("{}.{}.{}.{}", v[0], v[1], v[2], v[3]); };
-        const auto supported = toString(SupportedGameVersion);
 
         uint16_t version[4]{};
         if (!GetExeFileVersion(version)) {
-            spdlog::warn("cannot read game version, assuming {}", supported);
+            spdlog::warn("cannot read game version, assuming {}", toString(SupportedGameVersions[0].version));
+            gameVersion = SupportedGameVersions[0].id;
             return true;
         }
 
         spdlog::info("game version {}", toString(version));
-        if (std::equal(std::begin(version), std::end(version), std::begin(SupportedGameVersion))) {
-            return true;
+        std::string supported;
+        for (const auto &v : SupportedGameVersions) {
+            if (std::equal(std::begin(version), std::end(version), std::begin(v.version))) {
+                gameVersion = v.id;
+                return true;
+            }
+
+            supported += (supported.empty() ? "" : ", ") + toString(v.version);
         }
 
         const auto msg = std::format("Your game version is {}, dynamite supports only {}.\n\n"
                                      "dynamite is disabled for this session to prevent a crash.\n\n"
-                                     "To play co-op, roll the game back to {}, see "
+                                     "To play co-op, check for a dynamite update, see "
                                      "https://github.com/unknown321/dynamite/issues/136\n\n"
                                      "To play without dynamite, delete dinput8.dll from the game directory "
                                      "and verify integrity of game files in Steam.",
             toString(version),
-            supported,
             supported);
         spdlog::error(msg);
         ShowMessageBox(msg.c_str(), "Unsupported game version", MB_ICONERROR);
 
         return false;
+    }
+
+    // Disables hooks on addresses that do not have expected code (-1 is any byte).
+    void Dynamite::CheckAddresses(const std::map<std::string, std::vector<int16_t>> &checks) {
+        for (const auto &[name, expected] : checks) {
+            const auto code = reinterpret_cast<const uint8_t *>(addressSet[name]);
+            for (size_t i = 0; i < expected.size(); i++) {
+                if (expected[i] >= 0 && code[i] != expected[i]) {
+                    spdlog::error("{} at {:#x} has unexpected code, hook disabled", name, addressSet[name]);
+                    addressSet[name] = 0;
+                    break;
+                }
+            }
+        }
     }
 
     void Dynamite::RebaseAddresses() {
@@ -138,10 +158,14 @@ namespace Dynamite {
 
         MH_Initialize();
 
-        addressSet = mgsvtpp_adresses_1_0_15_3_en;
+        addressSet = gameVersion == GameVersion::V1_0_15_4 ? mgsvtpp_adresses_1_0_15_4_en : mgsvtpp_adresses_1_0_15_3_en;
         RealBaseAddr = (size_t)GetModuleHandle(nullptr);
 
         RebaseAddresses();
+        if (gameVersion == GameVersion::V1_0_15_4) {
+            CheckAddresses(mgsvtpp_address_checks_1_0_15_4_en);
+        }
+
         SetFuncPtrs();
         ReadConfig();
         CreateHooks();

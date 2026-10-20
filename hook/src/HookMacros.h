@@ -23,12 +23,17 @@ namespace Dynamite {
 //original function is at the <name> function ptr (just like createptr)
 //while the hook/detour is at <name>Hook function pointer.
 //TODO: rethink, could iterate over a map if I have a lookup of name to detour function (name##Hook)
+//address 0: function is not found in this game version, hook is skipped
 #define CREATE_HOOK(name)\
-    MH_STATUS name##CreateStatus = MH_CreateHook((LPVOID*)addressSet[#name], name##Hook, (LPVOID*)&name); \
-    if (name##CreateStatus != MH_OK) {                                                                    \
-        spdlog::error("create hook fail {}: {}", STRING(name), STRING(name##CreateStatus));               \
-        exit(1);                     \
-    }                    \
+    if (addressSet[#name] == 0) {                                                                         \
+        spdlog::warn("no address for {} in this game version, hook skipped", STRING(name));               \
+    } else {                                                                                              \
+        MH_STATUS name##CreateStatus = MH_CreateHook((LPVOID*)addressSet[#name], name##Hook, (LPVOID*)&name); \
+        if (name##CreateStatus != MH_OK) {                                                                \
+            spdlog::error("create hook fail {}: {}", STRING(name), STRING(name##CreateStatus));           \
+            exit(1);                                                                                      \
+        }                                                                                                 \
+    }
 
 
 /* Example use:
@@ -42,10 +47,10 @@ if (lua_newstateCreateStatus != MH_OK) {
  */
 
 
+//MH_EnableHook(0) would enable all hooks
 #define ENABLEHOOK(name)\
-    MH_STATUS name##EnableStatus = MH_EnableHook((LPVOID*)addressSet[#name]);\
-    if (name##EnableStatus != MH_OK) {\
-    } else {\
+    if (addressSet[#name] != 0) {\
+        MH_EnableHook((LPVOID*)addressSet[#name]);\
     }
 
 /*

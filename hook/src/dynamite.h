@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <map>
 #include <memory>
+#include <vector>
 
 namespace Dynamite {
     static const std::filesystem::path logPath = std::filesystem::path("dynamite") / std::filesystem::path("dynamite.log.txt");
@@ -24,6 +25,10 @@ namespace Dynamite {
     inline terminate_function terminate_Original;
     static const std::string logName = "dynamite";
     inline std::map<std::string, uint64_t> addressSet;
+
+    // addresses and patches are valid only for these exe versions
+    enum class GameVersion { V1_0_15_3, V1_0_15_4 };
+    inline GameVersion gameVersion = GameVersion::V1_0_15_3;
 
     class Dynamite {
       public:
@@ -41,6 +46,8 @@ namespace Dynamite {
         void ReadConfig();
 
         static bool CheckGameVersion();
+
+        static void CheckAddresses(const std::map<std::string, std::vector<int16_t>> &checks);
 
         void SetFuncPtrs();
 
@@ -62,8 +69,15 @@ namespace Dynamite {
         std::map<uint64_t, std::string> pathDict;
       private:
         static constexpr uint64_t BaseAddr = 0x140000000;
-        // addresses and patches are valid only for this exe version
-        static constexpr uint16_t SupportedGameVersion[4] = {1, 0, 15, 3};
+        struct SupportedGameVersion {
+            GameVersion id;
+            uint16_t version[4];
+        };
+
+        static constexpr SupportedGameVersion SupportedGameVersions[] = {
+            {GameVersion::V1_0_15_3, {1, 0, 15, 3}},
+            {GameVersion::V1_0_15_4, {1, 0, 15, 4}},
+        };
         uint64_t RealBaseAddr = 0;
         HMODULE thisModule{nullptr};
         std::shared_ptr<spdlog::logger> log = nullptr;
