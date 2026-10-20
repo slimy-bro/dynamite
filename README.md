@@ -3,6 +3,12 @@ dynamite
 
 dynamite is a 2 player co-op mod for Metal Gear Solid V: The Phantom Pain in early development stage.
 
+> [!IMPORTANT]
+> This is a fork of [unknown321/dynamite](https://github.com/unknown321/dynamite). This is mostly for use for me and a
+> friend. Changes in this fork (game version 1.0.15.4 support, Steam overlay invites and others) are fully vibecoded
+> with Claude, not made or reviewed by the original creator. If you want to support the mod, please support the original
+> creator, unknown321: [Boosty](https://boosty.to/unknown321/donate).
+
 > [!NOTE]
 > Game versions 1.0.15.4 (June 2026 update) and 1.0.15.3 are supported. 1.0.15.4 support is new, see
 > [user documentation](./webui/docs/docs.md#game-version).
@@ -32,7 +38,7 @@ https://github.com/user-attachments/assets/e82c43c7-eace-4084-b1fd-c4fb8ef3abe2
 
 ### Support the project
 
-<a href="https://boosty.to/unknown321/donate" target="_blank">Boosty</a>
+Support the original creator, unknown321: <a href="https://boosty.to/unknown321/donate" target="_blank">Boosty</a>
 
 ### Gameplay
 
